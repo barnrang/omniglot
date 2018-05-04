@@ -18,7 +18,7 @@ def classification_run(folder,f_load,f_cost,ftype='cost'):
 	#
 	# Output
 	#  perror : percent errors (0 to 100% error)
-	# 
+	#
 	assert ((ftype=='cost') | (ftype=='score'))
 
 	# get file names
@@ -29,7 +29,7 @@ def classification_run(folder,f_load,f_cost,ftype='cost'):
 	train_files = [pair[1] for pair in pairs]
 	answers_files = copy.copy(train_files)
 	test_files.sort()
-	train_files.sort()	
+	train_files.sort()
 	ntrain = len(train_files)
 	ntest = len(test_files)
 
@@ -77,7 +77,7 @@ def ModHausdorffDistance(itemA,itemB):
 
 def LoadImgAsPoints(fn):
 	# Load image file and return coordinates of 'inked' pixels in the binary image
-	# 
+	#
 	# Output:
 	#  D : [n x 2] rows are coordinates
 	I = imread(fn,flatten=True)
@@ -100,7 +100,7 @@ if __name__ == "__main__":
 	#   M.-P. Dubuisson, A. K. Jain (1994). A modified hausdorff distance for object matching.
 	#     International Conference on Pattern Recognition, pp. 566-568.
 	#
-	# ** Models should be trained on images in 'images_background' directory to avoid 
+	# ** Models should be trained on images in 'images_background' directory to avoid
 	#  using images and alphabets used in the one-shot evaluation **
 	#
 	print 'One-shot classification demo with Modified Hausdorff Distance'
@@ -108,8 +108,8 @@ if __name__ == "__main__":
 	for r in range(1,nrun+1):
 		rs = str(r)
 		if len(rs)==1:
-			rs = '0' + rs		
+			rs = '0' + rs
 		perror[r-1] = classification_run('run'+rs, LoadImgAsPoints, ModHausdorffDistance, 'cost')
-		print " run " + str(r) + " (error " + str(	perror[r-1] ) + "%)"		
+		print " run " + str(r) + " (error " + str(	perror[r-1] ) + "%)"
 	total = np.mean(perror)
 	print " average error " + str(total) + "%"
