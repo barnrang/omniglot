@@ -14,10 +14,19 @@ def loader(path=None):
     folders_list = os.listdir(path)
     for folder in tqdm(folders_list):
         path1 = os.path.join(path, folder)
-        for char_type in os.listdir(path1):
-            path2 = os.path.join(path1, char_type)
-            for image_name in os.listdir(path2):
-                yield plt.imread(os.path.join(path2, image_name)).astype(np.int8), (folder, char_type)
+        try: #In case of invalid folder
+            for char_type in os.listdir(path1):
+                path2 = os.path.join(path1, char_type)
+                class_image = []
+                for image_name in os.listdir(path2):
+                    image = plt.imread(os.path.join(path2, image_name)).astype(np.int8)
+                    image = np.expand_dims(image, axis=-1)
+                    class_image.append(image)
+                images.append(class_image)
+        except:
+            continue
+    return images
+    
 
 if __name__ == "__main__":
     images, labels = zip(*list(loader()))
