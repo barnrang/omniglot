@@ -1,3 +1,9 @@
+# import comet_ml in the top of your file
+from comet_ml import Experiment
+    
+# Add the following code anywhere in your machine learning file
+experiment = Experiment(api_key="qRngFGVIBc32hxbR60UCEvavQ", project_name="omniglot")
+
 from keras.utils import np_utils
 from keras import callbacks as cb
 from keras.optimizers import Adam
@@ -8,6 +14,7 @@ from keras import regularizers as rg
 from keras.preprocessing.image import ImageDataGenerator
 from keras.applications.xception import Xception
 from keras import backend as K
+
 
 import numpy.random as rng
 
