@@ -8,7 +8,6 @@ BASE_PATH = "images_background"
 def loader(path=None):
     "TODO!!!!"
     images = []
-    labels = [] #keep in list of tuple
     if path is None:
         path = BASE_PATH
     folders_list = os.listdir(path)
@@ -29,8 +28,8 @@ def loader(path=None):
     
 
 if __name__ == "__main__":
-    images, labels = zip(*list(loader()))
+    images = loader()
     index = -1
-    print(images[index], labels[index])
+    print(images[0][index])
     plt.imshow(images[index])
     plt.show()
