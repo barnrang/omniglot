@@ -1,8 +1,8 @@
-# # import comet_ml in the top of your file
-# from comet_ml import Experiment
-#
-# # Add the following code anywhere in your machine learning file
-# experiment = Experiment(api_key="qRngFGVIBc32hxbR60UCEvavQ", project_name="omniglot")
+# import comet_ml in the top of your file
+from comet_ml import Experiment
+
+# Add the following code anywhere in your machine learning file
+experiment = Experiment(api_key="qRngFGVIBc32hxbR60UCEvavQ", project_name="omniglot")
 
 from keras.utils import np_utils
 from keras import callbacks as cb
