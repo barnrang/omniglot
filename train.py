@@ -1,8 +1,8 @@
-# import comet_ml in the top of your file
-from comet_ml import Experiment
-    
-# Add the following code anywhere in your machine learning file
-experiment = Experiment(api_key="qRngFGVIBc32hxbR60UCEvavQ", project_name="omniglot")
+# # import comet_ml in the top of your file
+# from comet_ml import Experiment
+#
+# # Add the following code anywhere in your machine learning file
+# experiment = Experiment(api_key="qRngFGVIBc32hxbR60UCEvavQ", project_name="omniglot")
 
 from keras.utils import np_utils
 from keras import callbacks as cb
@@ -24,28 +24,31 @@ import matplotlib.image as img
 import random
 from python.dataloader import loader
 from kerasloader import DataGenerator
-from model import conv_net, hinge_loss, l2_distance
+from model import conv_net, hinge_loss, l2_distance, acc
+from transform import affine_transform
 
 input_shape = (105,105,1)
-batch_size = 2
+batch_size = 20
 
 if __name__ == "__main__":
     conv = conv_net()
     pin = Input(input_shape)
     pos = Input(input_shape)
     neg = Input(input_shape)
-    feature_pin = conv(pin)
-    feature_pos = conv(pos)
-    feature_neg = conv(neg)
+    pin_tmp = Lambda(lambda x: affine_transform(x, 0.5))(pin)
+    pos_tmp = Lambda(lambda x: affine_transform(x, 0.5))(pos)
+    neg_tmp = Lambda(lambda x: affine_transform(x, 0.5))(neg)
+    feature_pin = conv(pin_tmp)
+    feature_pos = conv(pos_tmp)
+    feature_neg = conv(neg_tmp)
     # Expect output < 0
     #pred = l2_distance(feature_pin, feature_pos) - l2_distance(feature_pin, feature_neg)
     pred = Lambda(lambda x: l2_distance(x[0], x[1]) - l2_distance(x[0], x[2]))([feature_pin, feature_pos, feature_neg])
     triplet_net = Model(input=[pin,pos,neg],output=pred)
     optimizer = Adam(0.00006)
-    triplet_net.compile(loss = hinge_loss, optimizer=optimizer)
-    y_target = np.zeros(batch_size)
+    triplet_net.compile(loss = hinge_loss, optimizer=optimizer, metrics=[acc])
     train_loader = DataGenerator(batch_size=batch_size)
-    triplet_net.fit_generator(generator=train_loader, epochs=10,use_multiprocessing=True, workers=4)
+    triplet_net.fit_generator(generator=train_loader, epochs=10,use_multiprocessing=False, workers=2)
 
 # images, labels = zip(*list(loader('python/images_background')))
 # images = np.expand_dims(images, axis=-1)

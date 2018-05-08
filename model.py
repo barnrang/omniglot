@@ -45,3 +45,7 @@ def l2_distance(x,y):
 def hinge_loss(target, pred, h=1.):
     loss = tf.reduce_mean(tf.maximum(pred + h, 0.))
     return loss
+
+def acc(target, pred):
+    result = tf.cast(tf.less(pred, target), dtype=tf.int16)
+    return tf.reduce_mean(result)
