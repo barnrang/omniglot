@@ -24,8 +24,8 @@ import matplotlib.image as img
 import random
 from python.dataloader import loader
 from kerasloader import DataGenerator
-from model import conv_net, hinge_loss, l2_distance, acc
-from transform import affine_transform
+from model import conv_net, hinge_loss, l2_distance, acc, l1_distance
+from transform import transform_gate
 
 input_shape = (105,105,1)
 batch_size = 20
@@ -35,20 +35,26 @@ if __name__ == "__main__":
     pin = Input(input_shape)
     pos = Input(input_shape)
     neg = Input(input_shape)
-    pin_tmp = Lambda(lambda x: affine_transform(x, 0.5))(pin)
-    pos_tmp = Lambda(lambda x: affine_transform(x, 0.5))(pos)
-    neg_tmp = Lambda(lambda x: affine_transform(x, 0.5))(neg)
+    is_training = Input([1], dtype=bool)
+    pin_tmp = Lambda(lambda x: transform_gate(x, 0.5, is_training[0][0]))(pin)
+    pos_tmp = Lambda(lambda x: transform_gate(x, 0.5, is_training[0][0]))(pos)
+    neg_tmp = Lambda(lambda x: transform_gate(x, 0.5, is_training[0][0]))(neg)
     feature_pin = conv(pin_tmp)
     feature_pos = conv(pos_tmp)
     feature_neg = conv(neg_tmp)
     # Expect output < 0
     #pred = l2_distance(feature_pin, feature_pos) - l2_distance(feature_pin, feature_neg)
-    pred = Lambda(lambda x: l2_distance(x[0], x[1]) - l2_distance(x[0], x[2]))([feature_pin, feature_pos, feature_neg])
-    triplet_net = Model(input=[pin,pos,neg],output=pred)
+    pred = Lambda(lambda x: l1_distance(x[0], x[1]) - l1_distance(x[0], x[2]))([feature_pin, feature_pos, feature_neg])
+    triplet_net = Model(input=[pin,pos,neg, is_training],output=pred)
     optimizer = Adam(0.00006)
     triplet_net.compile(loss = hinge_loss, optimizer=optimizer, metrics=[acc])
     train_loader = DataGenerator(batch_size=batch_size)
-    triplet_net.fit_generator(generator=train_loader, epochs=10,use_multiprocessing=False, workers=2)
+    val_loader = DataGenerator(data_type='val',batch_size=batch_size, num_batch=50)
+    save_model = cb.ModelCheckpoint('model/omniglot2', monitor='val_loss',save_best_only=True)
+    reduce_lr = cb.ReduceLROnPlateau(monitor='val_loss', factor=0.4,patience=2, min_lr=1e-8)
+    triplet_net.fit_generator(generator=train_loader, validation_data=val_loader,  epochs=30, use_multiprocessing=True, workers=4, callbacks=[save_model, reduce_lr])
+    conv.save_model('model/conv/triplet')
+
 
 # images, labels = zip(*list(loader('python/images_background')))
 # images = np.expand_dims(images, axis=-1)

@@ -39,13 +39,16 @@ def conv_net():
     convnet.add(Dense(4096,activation="sigmoid",kernel_regularizer=l2(1e-3),kernel_initializer=W_init,bias_initializer=b_init))
     return convnet
 
+def l1_distance(x,y):
+    return tf.reduce_sum(tf.maximum(tf.abs(x-y),eps), axis=1, keep_dims=True)
+
 def l2_distance(x,y):
-    return K.sqrt(K.sum(K.square(x - y) + eps))
+    return tf.sqrt(tf.reduce_sum(tf.maximum(tf.square(x-y),eps), axis=1, keep_dims=True))
 
 def hinge_loss(target, pred, h=1.):
     loss = tf.reduce_mean(tf.maximum(pred + h, 0.))
     return loss
 
 def acc(target, pred):
-    result = tf.cast(tf.less(pred, target), dtype=tf.int16)
+    result = tf.cast(tf.less(pred, target), dtype=tf.float32)
     return tf.reduce_mean(result)

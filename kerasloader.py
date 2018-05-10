@@ -1,29 +1,29 @@
 import numpy as np
 import keras
 import random
-# from transform import affine_transform
-# import tensorflow as tf
 from python.dataloader import loader
 
 class DataGenerator(keras.utils.Sequence):
     'Generates data for Keras'
-    def __init__(self, batch_size=20, num_batch=200, dim=(105,105), n_channels=1,
+    def __init__(self, data_type='train', batch_size=20, num_batch=200, dim=(105,105), n_channels=1,
                  n_classes=30):
         'Initialization'
+        self.type = data_type
+        if self.type == 'train':
+            self.is_training = np.array([True for _ in range(batch_size)])
+        else:
+            self.is_training = np.array([False for _ in range(batch_size)])
         self.dim = dim
         self.batch_size = batch_size
         self.n_channels = n_channels
         self.n_classes = n_classes
         self.num_batch = num_batch
         self.y_target = np.zeros(self.batch_size)
-        # self.trans_img_input = tf.placeholder(shape = (None,) + self.dim + (self.n_channels,), dtype=tf.float32)
-        # self.trans_img_output = affine_transform(self.trans_img_input, 0.5)
-        # self.sess = tf.Session()
-        self.build_data()
+        self.build_data(self.type)
         self.on_epoch_end()
 
-    def build_data(self):
-        self.class_data = np.array(loader('python/images_background'))
+    def build_data(self, data_type):
+        self.class_data = np.array(loader(data_type, 'python/images_background'))
         self.n_classes = len(self.class_data)
 
     def __len__(self):
@@ -39,7 +39,7 @@ class DataGenerator(keras.utils.Sequence):
         # X_pin = self.sess.run(self.trans_img_output, feed_dict={self.trans_img_input:X_pin})
         # X_neg = self.sess.run(self.trans_img_output, feed_dict={self.trans_img_input:X_neg})
 
-        return [X_pin, X_pos, X_neg], self.y_target
+        return [X_pin, X_pos, X_neg, self.is_training], self.y_target
 
     def on_epoch_end(self):
         'Updates indexes after each epoch'

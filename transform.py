@@ -8,11 +8,11 @@ CHANNEL = 1
 def prob(x):
     return tf.less(tf.random_uniform([1]),x)[0]
 
-def random_erase(x): 
+def random_erase(x):
     pack = tf.random_uniform([2], minval=15, maxval=40, dtype=tf.int32)
     width, height = pack[0], pack[1]
-    wst = tf.random_uniform([1], minval=0, maxval=DIMENSION - width, dtype = tf.int32)[0] 
-    hst = tf.random_uniform([1], minval=0, maxval=DIMENSION - height, dtype = tf.int32)[0] 
+    wst = tf.random_uniform([1], minval=0, maxval=DIMENSION - width, dtype = tf.int32)[0]
+    hst = tf.random_uniform([1], minval=0, maxval=DIMENSION - height, dtype = tf.int32)[0]
     erase = tf.random_uniform([width, height, CHANNEL])
     padding = tf.convert_to_tensor([[wst, DIMENSION - wst - width],[hst, DIMENSION - hst - height],[0,0]])
     padded = tf.pad(erase, padding, constant_values = 1.)
@@ -46,3 +46,7 @@ def affine_transform(X, rate):
     a0,a1,b0,b1 = trans_matrix[0][0],trans_matrix[0][1],trans_matrix[1][0],trans_matrix[1][1]
     a2,b2 = t[0],t[1]
     return transform(X, [a0,a1,a2,b0,b1,b2,0,0])
+
+def transform_gate(X, rate, is_training):
+    output = tf.cond(is_training, lambda: affine_transform(X, rate), lambda: X)
+    return X

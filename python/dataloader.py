@@ -4,13 +4,20 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 #import pandas as pd
 BASE_PATH = "images_background"
+TRAIN_CLASS = 25
 
-def loader(path=None):
+def loader(data_type='train',path=None):
     "TODO!!!!"
+    index = 0
     images = []
     if path is None:
         path = BASE_PATH
     folders_list = os.listdir(path)
+    folders_list.sort()
+    if data_type == 'train':
+        folders_list = folders_list[:TRAIN_CLASS]
+    else:
+        folders_list = folders_list[TRAIN_CLASS:]
     for folder in tqdm(folders_list):
         path1 = os.path.join(path, folder)
         try: #In case of invalid folder
@@ -25,7 +32,7 @@ def loader(path=None):
         except:
             continue
     return images
-    
+
 
 if __name__ == "__main__":
     images = loader()
