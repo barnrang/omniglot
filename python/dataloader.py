@@ -31,7 +31,7 @@ def loader(data_type='train',path=None):
                 images.append(class_image)
         except:
             continue
-    return images
+    return np.array(images)
 
 
 if __name__ == "__main__":
