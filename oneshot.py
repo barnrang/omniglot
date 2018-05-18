@@ -23,7 +23,7 @@ from transform import transform_gate
 
 BASE_PATH = "python/one-shot-classification/all_runs"
 
-def load_model():
+def load_conv_model():
     pass
 
 def load_data(test=0):
@@ -49,9 +49,27 @@ def load_label(test=0):
     return pair
 
 def retrieve_feature(model, train_batch, test_batch):
+    '''
+    Input 10 - train_batch 10 - test_batch
+    Out distance: [N_train, N_test]
+    '''
     train_feature = model.predict(train_batch)
     test_feature = model.predict(test_batch)
+    train_reshape = np.expand_dims(train_feature, axis=1)
+    test_reshape = np.expand_dims(test_feature, axis=0)
+    dist = np.sum(np.abs(train_reshape - test_reshape), axis=-1)
+    return dist
 
+def cal_acc(dist):
+    pass
 
 if __name__ == "__main__":
-    pass
+    acc = []
+    N_set = 20
+    model = load_conv_model()
+    for i in range(N_set):
+        train_batch, test_batch = load_data(i)
+        pair = load_label(i)
+        dist = retrieve_feature(model, train_batch, test_batch)
+        acc.append(cal_acc(dist))
+    print(np.mean(acc))
