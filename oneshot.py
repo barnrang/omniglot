@@ -45,7 +45,7 @@ def load_label(test=0):
     for line in f:
         path1, path2 = line.split(' ')
         idx1, idx2 = int(path1[-6:-4]), int(path2[-6:-4])
-        pair.append((idx1,idx2))
+        pair.append(idx2 - 1)
     return pair
 
 def retrieve_feature(model, train_batch, test_batch):
@@ -60,8 +60,9 @@ def retrieve_feature(model, train_batch, test_batch):
     dist = np.sum(np.abs(train_reshape - test_reshape), axis=-1)
     return dist
 
-def cal_acc(dist):
-    pass
+def cal_acc(pair, dist):
+    max_index = np.argmax(dist, axis=1)
+    return np.mean(max_index == pair)
 
 if __name__ == "__main__":
     acc = []
@@ -71,5 +72,5 @@ if __name__ == "__main__":
         train_batch, test_batch = load_data(i)
         pair = load_label(i)
         dist = retrieve_feature(model, train_batch, test_batch)
-        acc.append(cal_acc(dist))
+        acc.append(cal_acc(pair, dist))
     print(np.mean(acc))
