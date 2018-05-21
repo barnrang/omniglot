@@ -22,6 +22,9 @@ class DataGenerator(keras.utils.Sequence):
         self.build_data(self.type)
         self.on_epoch_end()
 
+        #TODO!!!!
+        self.hard_batch = np.zeros(batch_size, *dim, n_channels)
+
     def build_data(self, data_type):
         self.class_data = np.array(loader(data_type, 'python/images_background'))
         self.n_classes = len(self.class_data)

@@ -21,30 +21,36 @@ from kerasloader import DataGenerator
 from model import conv_net, hinge_loss, l2_distance, acc, l1_distance
 from transform import transform_gate
 
-BASE_PATH = "python/one-shot-classification/all_runs"
+BASE_PATH = "python/one-shot-classification"
 
 def load_conv_model():
     pass
 
-def load_data(test=0):
+def load_data(test=1):
     train_batch = []
     test_batch = []
-    base_dir = os.path.join (BASE_PATH, f"run{%2d}".(test))
-    train_dir = os.listdir(os.path.join(base_dir, 'training'))
-    test_dir = os.listdir(os.path.join(base_dir, 'test'))
+    base_dir = os.path.join (BASE_PATH, "run%02d" % (test))
+    train_path = os.path.join(base_dir, 'training')
+    test_path = os.path.join(base_dir, 'test')
+    train_dir = os.listdir(train_path)
+    test_dir = os.listdir(test_path)
+    train_dir.sort()
+    test_dir.sort()
     for i in range(len(train_dir)):
-        train_batch.append(plt.imread(image_dir[i]).astype(np.uint8))
-        test_batch.append(plt.imread(test_dir[i]).astype(np.uint8))
+        train_batch.append(plt.imread(os.path.join(train_path, train_dir[i])).astype(np.uint8))
+        test_batch.append(plt.imread(os.path.join(test_path, test_dir[i])).astype(np.uint8))
 
+    train_batch = np.expand_dims(train_batch, axis=-1)
+    test_batch = np.expand_dims(test_batch, axis=-1)
     return train_batch, test_batch
 
-def load_label(test=0):
-    text_file = os.path.join(BASE_PATH, f"run{%2d}/class_labels".(test))
+def load_label(test=1):
+    text_file = os.path.join(BASE_PATH, "run%02d/class_labels.txt" % (test))
     f = open(text_file, 'r')
     pair = []
     for line in f:
         path1, path2 = line.split(' ')
-        idx1, idx2 = int(path1[-6:-4]), int(path2[-6:-4])
+        idx1, idx2 = int(path1[-6:-4]), int(path2[-7:-5])
         pair.append((idx1,idx2))
     return pair
 
@@ -60,8 +66,10 @@ def retrieve_feature(model, train_batch, test_batch):
     dist = np.sum(np.abs(train_reshape - test_reshape), axis=-1)
     return dist
 
-def cal_acc(dist):
-    pass
+def cal_acc(dist, label):
+    pred = np.argmin(dist, axis=0) + 1
+    target = [x[1] for x in label]
+    return np.mean(pred == target)
 
 if __name__ == "__main__":
     acc = []
