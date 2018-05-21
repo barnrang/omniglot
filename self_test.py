@@ -32,33 +32,7 @@ batch_size = 20
 
 if __name__ == "__main__":
     conv = conv_net()
-    pin = Input(input_shape)
-    pos = Input(input_shape)
-    neg = Input(input_shape)
-    is_training = Input([1], dtype=bool)
-    pin_tmp = Lambda(lambda x: transform_gate(x, 0.5, is_training[0][0]))(pin)
-    pos_tmp = Lambda(lambda x: transform_gate(x, 0.5, is_training[0][0]))(pos)
-    neg_tmp = Lambda(lambda x: transform_gate(x, 0.5, is_training[0][0]))(neg)
-    feature_pin = conv(pin_tmp)
-    feature_pos = conv(pos_tmp)
-    feature_neg = conv(neg_tmp)
-    # Expect output < 0
-    #pred = l2_distance(feature_pin, feature_pos) - l2_distance(feature_pin, feature_neg)
-    pred = Lambda(lambda x: l1_distance(x[0], x[1]) - l1_distance(x[0], x[2]))([feature_pin, feature_pos, feature_neg])
-    triplet_net = Model(input=[pin,pos,neg, is_training],output=pred)
-    optimizer = Adam(0.00006)
-    triplet_net.compile(loss = hinge_loss, optimizer=optimizer, metrics=[acc])
-    train_loader = DataGenerator(batch_size=batch_size)
-    val_loader = DataGenerator(data_type='val',batch_size=batch_size, num_batch=50)
-    save_model = cb.ModelCheckpoint('model/omniglot2', monitor='val_loss',save_best_only=True)
-    reduce_lr = cb.ReduceLROnPlateau(monitor='val_loss', factor=0.4,patience=2, min_lr=1e-8)
-    triplet_net.fit_generator(generator=train_loader, validation_data=val_loader,  epochs=40, use_multiprocessing=True, workers=4, callbacks=[save_model, reduce_lr])
-    try:
-        conv.save('model/conv/triplet.h5')
-    except:
-        print('save whole')
-        triplet_net.save('model/conv/triplet.h5')
-
+    conv.load_weights('model/conv/triplet.h5')
 
 # images, labels = zip(*list(loader('python/images_background')))
 # images = np.expand_dims(images, axis=-1)
