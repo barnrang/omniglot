@@ -79,5 +79,5 @@ if __name__ == "__main__":
         train_batch, test_batch = load_data(i)
         pair = load_label(i)
         dist = retrieve_feature(model, train_batch, test_batch)
-        acc.append(cal_acc(dist))
+        acc.append(cal_acc(pair, dist))
     print(np.mean(acc))
