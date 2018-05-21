@@ -52,8 +52,12 @@ if __name__ == "__main__":
     val_loader = DataGenerator(data_type='val',batch_size=batch_size, num_batch=50)
     save_model = cb.ModelCheckpoint('model/omniglot2', monitor='val_loss',save_best_only=True)
     reduce_lr = cb.ReduceLROnPlateau(monitor='val_loss', factor=0.4,patience=2, min_lr=1e-8)
-    triplet_net.fit_generator(generator=train_loader, validation_data=val_loader,  epochs=30, use_multiprocessing=True, workers=4, callbacks=[save_model, reduce_lr])
-    conv.save_model('model/conv/triplet')
+    triplet_net.fit_generator(generator=train_loader, validation_data=val_loader,  epochs=40, use_multiprocessing=True, workers=4, callbacks=[save_model, reduce_lr])
+    try:
+        conv.save('model/conv/triplet.h5')
+    except:
+        print('save whole')
+        triplet_net.save('model/conv/triplet.h5')
 
 
 # images, labels = zip(*list(loader('python/images_background')))
