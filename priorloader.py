@@ -1,4 +1,5 @@
 import numpy as np
+from keras.utils import np_utils
 import keras
 import random
 from python.dataloader import loader
@@ -6,7 +7,7 @@ from python.dataloader import loader
 class DataGenerator(keras.utils.Sequence):
     'Generates data for Keras'
     def __init__(self, data_type='train', dim=(28,28), n_channels=1,
-                way=20, shot=1):
+                way=20, shot=1, num_batch=500):
         'Initialization'
         self.type = data_type
         # if self.type == 'train':
@@ -17,7 +18,7 @@ class DataGenerator(keras.utils.Sequence):
         #self.batch_size = batch_size
         self.n_channels = n_channels
         self.num_per_class = 20
-        #self.num_batch = num_batch
+        self.num_batch = num_batch
         #self.y_target = np.zeros(self.batch_size)
         self.build_data(self.type)
         self.on_epoch_end()
@@ -32,7 +33,7 @@ class DataGenerator(keras.utils.Sequence):
 
     def __len__(self):
         'Denotes the number of batches per epoch'
-        return self.way * self.shot
+        return self.num_batch
 
     def __getitem__(self, index):
         'Generate one batch of data'
@@ -65,5 +66,5 @@ class DataGenerator(keras.utils.Sequence):
             X_sample[i * self.shot:(i+1) * self.shot] = sample_data[:self.shot]
             X_query[i * self.shot:(i+1) * self.shot] = sample_data[self.shot:]
             label[i * self.shot:(i+1) * self.shot] = i
-        return X_sample, X_query, label
+        return X_sample, X_query, np_utils.to_categorical(label)
         #return X, keras.utils.to_categorical(y, num_classes=self.n_classes)

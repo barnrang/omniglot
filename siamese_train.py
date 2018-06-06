@@ -1,9 +1,9 @@
 
-# # import comet_ml in the top of your file
-# from comet_ml import Experiment
+# import comet_ml in the top of your file
+#from comet_ml import Experiment
 
-# # Add the following code anywhere in your machine learning file
-# experiment = Experiment(api_key="qRngFGVIBc32hxbR60UCEvavQ", project_name="omniglot")
+# Add the following code anywhere in your machine learning file
+#experiment = Experiment(api_key="qRngFGVIBc32hxbR60UCEvavQ", project_name="omniglot")
 
 from keras.utils import np_utils
 from keras import callbacks as cb
@@ -15,7 +15,7 @@ from keras import regularizers as rg
 from keras.preprocessing.image import ImageDataGenerator
 from keras.applications.xception import Xception
 from keras import backend as K
-
+import tensorflow as tf
 
 import numpy.random as rng
 
@@ -24,33 +24,40 @@ import matplotlib.pyplot as plt
 import matplotlib.image as img
 import random
 from python.dataloader import loader
-from priorloader import DataGenerator
-from prior_model import conv_net, hinge_loss, l2_distance, acc, l1_distance
+from siameseloader import DataGenerator
+from model import conv_net, hinge_loss, l2_distance, l1_distance
 from transform import transform_gate
-from util.tensor_op import *
-from util.loss import *
-input_shape = (28,28,1)
-batch_size = 20
-way = 20
-shot = 1
+
+input_shape = (105,105,1)
+batch_size = 10
+
+def acc(target, pred):
+    categorize = tf.cast(tf.greater(pred,0.5),tf.float32)
+    same = tf.cast(tf.equal(categorize, target),tf.float32)
+    return tf.reduce_mean(same)
 
 if __name__ == "__main__":
     conv = conv_net()
-    sample = Input(input_shape)
-    out_feature = conv(sample)
-    store_weight = Lambda(lambda x: slice_tensor_and_sum(x, way))(out_feature)
-    inp = Input(input_shape)
-    map_feature = conv(inp)
-    pred = Lambda(lambda x:prior_dist(x))([out_feature, map_feature]) #negative distance
-    combine = Model([sample, inp], pred)
+    X1 = Input(shape=input_shape)
+    X2 = Input(shape=input_shape)
+    is_training = Input([1], dtype=bool)
+    x1_tmp = Lambda(lambda x: transform_gate(x, 0.3, is_training[0][0]))(X1)
+    x2_tmp = Lambda(lambda x: transform_gate(x, 0.3, is_training[0][0]))(X2)
+    feature_x1 = conv(x1_tmp)
+    feature_x2 = conv(x2_tmp)
+    # Expect output < 0
+    #pred = l2_distance(feature_pin, feature_pos) - l2_distance(feature_pin, feature_neg)
+    mid_layer = Lambda(lambda x: tf.abs(feature_x1 - feature_x2))([feature_x1, feature_x2])
+    pred = Dense(1,activation='sigmoid')(mid_layer)
+    triplet_net = Model(input=[X1, X2, is_training],output=pred)
     optimizer = Adam(0.0001)
-    combine.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['categorical_accuracy'])
-    print(combine.summary())
-    train_loader = DataGenerator(way=way*3, shot=shot)
-    val_loader = DataGenerator(data_type='val',way=way, shot=shot)
-    save_model = cb.ModelCheckpoint('model/proto', monitor='val_loss',save_best_only=True)
+    triplet_net.compile(loss = 'binary_crossentropy', optimizer=optimizer, metrics=[acc])
+    train_loader = DataGenerator(batch_size=batch_size)
+    val_loader = DataGenerator(data_type='val',batch_size=batch_size, num_batch=50)
+    save_model = cb.ModelCheckpoint('model/omniglot2', monitor='val_loss',save_best_only=True)
     reduce_lr = cb.ReduceLROnPlateau(monitor='val_loss', factor=0.4,patience=2, min_lr=1e-8)
-    combine.fit_generator(train_loader,epochs=40,validation_data=val_loader,  use_multiprocessing=True, workers=4, shuffle=False)
+    triplet_net.fit_generator(generator=train_loader, validation_data=val_loader,  epochs=40, use_multiprocessing=True, workers=4, callbacks=[save_model, reduce_lr])
+    triplet_net.save('model/siamese.h5')
 
 
 # images, labels = zip(*list(loader('python/images_background')))

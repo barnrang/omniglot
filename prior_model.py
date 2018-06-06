@@ -1,4 +1,5 @@
 from keras.layers import Input, Conv2D, Lambda, merge, Dense, Flatten,MaxPooling2D
+from keras.layers.normalization import BatchNormalization
 from keras.models import Model, Sequential
 from keras.regularizers import l2
 from keras import backend as K
@@ -27,8 +28,10 @@ input_shape = (28,28, 1)
 def conv_net():
     convnet = Sequential()
     for i in range(4):
-        convnet.add(Conv2D(64,(3,3),activation='batch_norm',input_shape=input_shape))
+        convnet.add(Conv2D(64,(3,3),padding='same',input_shape=input_shape))
+        convnet.add(BatchNormalization())
         convnet.add(MaxPooling2D())
+    convnet.add(Flatten())
     return convnet
 
 def l1_distance(x,y):
