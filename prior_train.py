@@ -1,9 +1,9 @@
 
-# import comet_ml in the top of your file
-from comet_ml import Experiment
+# # import comet_ml in the top of your file
+# from comet_ml import Experiment
 
-# Add the following code anywhere in your machine learning file
-experiment = Experiment(api_key="qRngFGVIBc32hxbR60UCEvavQ", project_name="omniglot")
+# # Add the following code anywhere in your machine learning file
+# experiment = Experiment(api_key="qRngFGVIBc32hxbR60UCEvavQ", project_name="omniglot")
 
 from keras.utils import np_utils
 from keras import callbacks as cb
@@ -28,6 +28,7 @@ from priorloader import DataGenerator
 from model import conv_net, hinge_loss, l2_distance, acc, l1_distance
 from transform import transform_gate
 from util.tensor_op import *
+from util.loss import *
 input_shape = (105,105,1)
 batch_size = 20
 way = 20
@@ -36,14 +37,16 @@ shot = 1
 if __name__ == "__main__":
     conv = conv_net()
     sample = Input(input_shape)
-    out_features = conv(sample)
+    out_feature = conv(sample)
     store_weight = Lambda(lambda x: slice_tensor_and_sum(x, way))(out_feature)
     inp = Input(input_shape)
     map_feature = conv(inp)
-    pred = -prior_dist(out_features, map_features) #negative distance
+    pred = -prior_dist(out_feature, map_feature) #negative distance
     combine = Model([sample, inp], pred)
     optimizer = Adam(0.0001)
-    combine.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['categorical_accuracy'])
+    combine.compile(loss='sparse_categorical_crossentropy', optimizer=optimizer, metrics=['categorical_accuracy'])
+    train_loader = DataGenerator()
+    combine.fit_generator(train_loader,epochs=40, use_multiprocessing=True, workers=4)
 
 
 # images, labels = zip(*list(loader('python/images_background')))

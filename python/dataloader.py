@@ -2,6 +2,8 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+import cv2
+from scipy.misc import imresize
 #import pandas as pd
 BASE_PATH = "images_background"
 TRAIN_CLASS = 25
@@ -26,6 +28,7 @@ def loader(data_type='train',path=None):
                 class_image = []
                 for image_name in os.listdir(path2):
                     image = plt.imread(os.path.join(path2, image_name)).astype(np.int8)
+                    image = imresize(image,(28,28))
                     image = np.expand_dims(image, axis=-1)
                     class_image.append(image)
                 images.append(class_image)
