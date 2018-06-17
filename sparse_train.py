@@ -5,6 +5,8 @@
 # # Add the following code anywhere in your machine learning file
 # experiment = Experiment(api_key="qRngFGVIBc32hxbR60UCEvavQ", project_name="omniglot")
 
+import tensorflow as tf
+
 from keras.utils import np_utils
 from keras import callbacks as cb
 from keras.optimizers import Adam
@@ -32,16 +34,17 @@ from util.loss import *
 input_shape = (28,28,1)
 batch_size = 20
 way = 20
-shot = 1
+shot = 1  
 
 if __name__ == "__main__":
     conv = conv_net()
-    sample = Input(input_shape)
-    out_feature = Lambda(lambda x: tf.map_fn(conv, x, parallel_iterations=20))(sample)
-    out_feature = Lambda(lambda x: slice_tensor_and_sum(x, way))(out_feature)
-    inp = Input(input_shape)
+    sample = tf.placeholder(tf.float32, [None, *(input_shape)])
+    reset = tf.placeholder(tf.bool)
+    out_feature = conv(sample)
+    store_weight = tf.cond(reset,lambda: out_feature, lambda: store_weight + out_feature)
+    inp = tf.placeholder(tf.float32, [None, *(input_shape)])
     map_feature = conv(inp)
-    pred = Lambda(lambda x:prior_dist(x))([out_feature, map_feature]) #negative distance
+    pred = Lambda(lambda x:prior_dist(x))([store_feature/shot, map_feature]) #negative distance
     combine = Model([sample, inp], pred)
     optimizer = Adam(0.0001)
     combine.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['categorical_accuracy'])
