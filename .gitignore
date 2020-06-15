@@ -6,3 +6,8 @@ python/images_background_small2
 python/images_evaluation
 python/one-shot-classification/**
 TFRecord/
+logs/
+*.npy
+*.csv
+python/
+__pycache__/

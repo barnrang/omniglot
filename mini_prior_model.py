@@ -22,7 +22,7 @@ def b_init(shape,name=None):
     values=rng.normal(loc=0.5,scale=1e-2,size=shape)
     return K.variable(values,name=name)
 
-input_shape = (28,28, 1)
+input_shape = (84,84, 3)
 
 #build convnet to use in each siamese 'leg'
 def conv_net():
